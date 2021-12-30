@@ -294,11 +294,9 @@ namespace FdoSecrets
         term.field = attrKeyToField.value(key, EntrySearcher::Field::AttributeValue);
         term.word = key;
         term.exclude = false;
-
-        const auto useWildcards = false;
-        const auto exactMatch = true;
-        const auto caseSensitive = true;
-        term.regex = Tools::convertToRegex(QRegularExpression::escape(value), useWildcards, exactMatch, caseSensitive);
+        term.regex =
+            Tools::convertToRegex(QRegularExpression::escape(value),
+                                  Tools::RegexConvertOpts::EXACT_MATCH | Tools::RegexConvertOpts::CASE_SENSITIVE);
 
         return term;
     }
