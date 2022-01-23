@@ -28,7 +28,6 @@
 #include "gui/MessageWidget.h"
 #include "gui/csvImport/CsvImportWizard.h"
 #include "gui/entry/EntryModel.h"
-#include "gui/tag/TagModel.h"
 
 class DatabaseOpenWidget;
 class KeePass1OpenWidget;
@@ -119,10 +118,8 @@ public:
 
     QByteArray entryViewState() const;
     bool setEntryViewState(const QByteArray& state) const;
-    QList<int> mainSplitterSizes() const;
-    void setMainSplitterSizes(const QList<int>& sizes);
-    QList<int> previewSplitterSizes() const;
-    void setPreviewSplitterSizes(const QList<int>& sizes);
+    QHash<Config::ConfigKey, QList<int>> splitterSizes() const;
+    void setSplitterSizes(const QHash<Config::ConfigKey, QList<int>>& sizes);
     void setSearchStringForAutoType(const QString& search);
 
 signals:
@@ -150,11 +147,11 @@ signals:
     void listModeActivated();
     void searchModeAboutToActivate();
     void searchModeActivated();
-    void mainSplitterSizesChanged();
-    void previewSplitterSizesChanged();
+    void splitterSizesChanged();
     void entryViewStateChanged();
     void clearSearch();
     void requestGlobalAutoType(const QString& search);
+    void requestSearch(const QString& search);
 
 public slots:
     bool lock();
@@ -265,12 +262,12 @@ private:
     void openDatabaseFromEntry(const Entry* entry, bool inBackground = true);
     void performIconDownloads(const QList<Entry*>& entries, bool force = false, bool downloadInBackground = false);
     bool performSave(QString& errorMessage, const QString& fileName = {});
-    void restoreTagSidePanelSelection();
 
     QSharedPointer<Database> m_db;
 
     QPointer<QWidget> m_mainWidget;
     QPointer<QSplitter> m_mainSplitter;
+    QPointer<QSplitter> m_groupSplitter;
     QPointer<MessageWidget> m_messageWidget;
     QPointer<EntryPreviewWidget> m_previewView;
     QPointer<QSplitter> m_previewSplitter;
@@ -302,9 +299,6 @@ private:
     QScopedPointer<EntrySearcher> m_entrySearcher;
     QString m_lastSearchText;
     bool m_searchLimitGroup;
-
-    // Tag filtering state
-    QString m_lastTagSelection;
 
     // Autoreload
     bool m_blockAutoSave;

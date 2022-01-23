@@ -19,32 +19,30 @@
 #define KEEPASSX_TAGMODEL_H
 
 #include <QAbstractListModel>
-#include <QSet>
+#include <QSharedPointer>
 
-class Group;
-class Entry;
+class Database;
 
-// TODO: rename as TagGroupModel or make it general
 class TagModel : public QAbstractListModel
 {
     Q_OBJECT
 
 public:
-    explicit TagModel(Group* g, QObject* parent = nullptr);
+    explicit TagModel(QSharedPointer<Database> db, QObject* parent = nullptr);
+    ~TagModel() override;
+
+    void setDatabase(QSharedPointer<Database> db);
+    const QStringList& tags() const;
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
-    QStringList entryTags(const Entry* entry); // TODO: move to entry
-    QStringList& tags();
-    void findTags();
 
-public slots:
-    void setGroup(Group* g);
+private slots:
+    void updateTagList();
 
 private:
-    Group* m_group;
-    QStringList tagList;
+    QSharedPointer<Database> m_db;
+    QStringList m_tagList;
 };
 
 #endif // KEEPASSX_TAGMODEL_H

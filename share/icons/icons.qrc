@@ -72,6 +72,8 @@
         <file>application/scalable/actions/system-help.svg</file>
         <file>application/scalable/actions/system-search.svg</file>
         <file>application/scalable/actions/system-software-update.svg</file>
+        <file>application/scalable/actions/tag.svg</file>
+        <file>application/scalable/actions/tag-search.svg</file>
         <file>application/scalable/actions/trash.svg</file>
         <file>application/scalable/actions/url-copy.svg</file>
         <file>application/scalable/actions/user-guide.svg</file>
@@ -93,7 +95,6 @@
         <file>application/scalable/apps/utilities-terminal.svg</file>
 
         <file>application/scalable/categories/preferences-other.svg</file>
-        <file>application/scalable/categories/label.svg</file>
 
         <file>application/scalable/mimetypes/application-x-keepassxc.svg</file>
 

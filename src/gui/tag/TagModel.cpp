@@ -17,89 +17,73 @@
 
 #include "TagModel.h"
 
-#include "core/Group.h"
+#include "core/Database.h"
 #include "gui/Icons.h"
 
-TagModel::TagModel(Group* g, QObject* parent)
+TagModel::TagModel(QSharedPointer<Database> db, QObject* parent)
     : QAbstractListModel(parent)
 {
-    setGroup(g);
+    setDatabase(db);
 }
 
-// TODO: MOVE to entry
-QStringList TagModel::entryTags(const Entry* entry)
+TagModel::~TagModel()
 {
-    if (entry != nullptr) {
-        QRegExp rx("(\\ |\\,|\\.|\\:|\\t|\\;)");
-        auto entryTags = entry->tags().split(rx);
-        entryTags.removeAll(QString(""));
-        return entryTags;
+}
+
+void TagModel::setDatabase(QSharedPointer<Database> db)
+{
+    m_db = db;
+    if (!m_db) {
+        m_tagList.clear();
+        return;
     }
-    return QStringList();
+    connect(m_db.data(), SIGNAL(tagListUpdated()), SLOT(updateTagList()));
+    updateTagList();
 }
 
-void TagModel::setGroup(Group* g)
-{
-    m_group = g;
-    findTags();
-}
-
-void TagModel::findTags()
+void TagModel::updateTagList()
 {
     beginResetModel();
-    QSet<QString> s;
-    s.insert("");
-    if (m_group != nullptr) {
-        for (const auto* group : m_group->groupsRecursive(true)) {
-            for (const auto entry : group->entries()) {
-                for (auto tag : entryTags(entry)) {
-                    s.insert(tag);
-                }
-            }
-        }
-    }
-    tagList = s.toList();
-    tagList.sort();
-    tagList[0] = "All"; // Empty string always at the beginning
+    m_tagList.clear();
+    m_tagList << tr("All") << tr("Expired") << tr("Weak Passwords") << m_db->tagList();
     endResetModel();
 }
 
 int TagModel::rowCount(const QModelIndex& parent) const
 {
-    (void)parent; // avoid unused warnings
-    return tagList.size();
+    Q_UNUSED(parent);
+    return m_tagList.size();
 }
 
 QVariant TagModel::data(const QModelIndex& index, int role) const
 {
-    if (!index.isValid())
-        return QVariant();
+    if (!index.isValid() || index.row() >= m_tagList.size()) {
+        return {};
+    }
 
-    if (index.row() >= tagList.size())
-        return QVariant();
+    switch (role) {
+    case Qt::DecorationRole:
+        if (index.row() <= 2) {
+            return icons()->icon("tag-search");
+        }
+        return icons()->icon("tag");
+    case Qt::DisplayRole:
+        return m_tagList.at(index.row());
+    case Qt::UserRole:
+        if (index.row() == 0) {
+            return "";
+        } else if (index.row() == 1) {
+            return "is:expired";
+        } else if (index.row() == 2) {
+            return "is:weak";
+        }
+        return QString("tag:%1").arg(m_tagList.at(index.row()));
+    }
 
-    if (role == Qt::DecorationRole)
-        return icons()->icon(QStringLiteral("label"));
-
-    if (role == Qt::DisplayRole)
-        return tagList.at(index.row());
-
-    else
-        return QVariant();
+    return {};
 }
 
-QVariant TagModel::headerData(int section, Qt::Orientation orientation, int role) const
+const QStringList& TagModel::tags() const
 {
-    if (role != Qt::DisplayRole)
-        return QVariant();
-
-    if (orientation == Qt::Horizontal)
-        return QString("Column %1").arg(section);
-    else
-        return QString("Row %1").arg(section);
-}
-
-QStringList& TagModel::tags()
-{
-    return tagList;
+    return m_tagList;
 }
