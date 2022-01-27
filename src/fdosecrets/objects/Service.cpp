@@ -379,6 +379,12 @@ namespace FdoSecrets
             return DBusResult(DBUS_ERROR_SECRET_NO_SESSION);
         }
 
+        if (items.size() == 1) {
+            // show a detailed notification
+            const auto& item = *items.begin();
+            return item->getSecret(client, session, secrets[item]);
+        }
+
         for (const auto& item : asConst(items)) {
             auto ret = item->getSecretNoNotification(client, session, secrets[item]);
             if (ret.err()) {
